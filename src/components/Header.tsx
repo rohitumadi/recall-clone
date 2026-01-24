@@ -1,11 +1,13 @@
 'use client'
 import { useScroll } from '@/hooks/use-scroll'
-import { Logo } from '@/components/logo'
 import { Button, buttonVariants } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 import { MobileNav } from '@/components/mobile-nav'
 import { ModeToggle } from './ui/mode-toggle'
 import { Link } from '@tanstack/react-router'
+import { useTheme } from '../lib/theme-provider'
+import { authClient } from '@/lib/auth-client'
+import { toast } from 'sonner'
 
 export const navLinks = [
   {
@@ -24,6 +26,8 @@ export const navLinks = [
 
 export function Header() {
   const scrolled = useScroll(10)
+  const { theme } = useTheme()
+  const { data: session, isPending } = authClient.useSession()
 
   return (
     <header
@@ -43,26 +47,65 @@ export function Header() {
           },
         )}
       >
-        <Link to="/" className="rounded-md p-2 hover:bg-accent" href="#">
-          <Logo className="h-4.5" />
+        <Link to="/" href="#">
+          {/* <h1 className="text-4xl font-bold">Brain Box</h1> */}
+          {theme === 'dark' ? (
+            <img src="/logo-dark.png" alt="Logo" width={100} height={100} />
+          ) : (
+            <img src="/logo.png" alt="Logo" width={100} height={100} />
+          )}
         </Link>
         <div className="hidden items-center gap-1 md:flex">
           {navLinks.map((link, i) => (
-            <a
+            <Link
               className={buttonVariants({ variant: 'ghost' })}
-              href={link.href}
+              to={link.href}
               key={i}
             >
               {link.label}
-            </a>
+            </Link>
           ))}
-          <Link to="/login" className={buttonVariants({ variant: 'ghost' })}>
-            Login
-          </Link>
           <ModeToggle />
-          <Link to="/signup" className={buttonVariants({ variant: 'default' })}>
-            Get Started
-          </Link>
+          {session ? (
+            <>
+              <Button
+                variant="ghost"
+                onClick={() =>
+                  authClient.signOut({
+                    fetchOptions: {
+                      onSuccess: () => {
+                        toast.success('Logged out successfully')
+                      },
+                      onError: ({ error }) => {
+                        toast.error(error.message)
+                      },
+                    },
+                  })
+                }
+                className={buttonVariants({ variant: 'ghost' })}
+              >
+                Logout
+              </Button>
+              <Link to="/dashboard" className={buttonVariants()}>
+                Dashboard
+              </Link>
+            </>
+          ) : (
+            <>
+              <Link
+                to="/login"
+                className={buttonVariants({ variant: 'ghost' })}
+              >
+                Login
+              </Link>
+              <Link
+                to="/signup"
+                className={buttonVariants({ variant: 'default' })}
+              >
+                Get Started
+              </Link>
+            </>
+          )}
         </div>
         <MobileNav />
       </nav>

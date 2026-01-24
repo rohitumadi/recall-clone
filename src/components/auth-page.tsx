@@ -1,6 +1,5 @@
 'use client'
 
-import { Logo } from '@/components/logo'
 import { Button } from '@/components/ui/button'
 import { ChevronLeftIcon } from 'lucide-react'
 import { FloatingPaths } from '@/components/floating-paths'
@@ -16,7 +15,8 @@ export function AuthPage() {
     <main className="relative md:h-screen md:overflow-hidden lg:grid lg:grid-cols-2">
       <div className="relative hidden h-full flex-col border-r bg-secondary p-10 lg:flex dark:bg-secondary/20">
         <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-background" />
-        <Logo className="mr-auto h-5" />
+
+        <h1 className="text-4xl font-bold">Brain Box</h1>
 
         <div className="z-10 mt-auto">
           <blockquote className="space-y-2">
