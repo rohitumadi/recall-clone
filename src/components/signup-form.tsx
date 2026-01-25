@@ -41,7 +41,7 @@ export function SignUpForm({ ...props }: React.ComponentProps<typeof Card>) {
         fetchOptions: {
           onSuccess: () => {
             toast.success('Account created successfully')
-            navigate({ to: '/' })
+            navigate({ to: '/dashboard' })
           },
           onError: ({ error }) => {
             toast.error(error.message)

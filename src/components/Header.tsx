@@ -32,7 +32,7 @@ export function Header() {
   return (
     <header
       className={cn(
-        'sticky top-0 z-50 mx-auto w-full max-w-4xl border-transparent border-b md:rounded-md md:border md:transition-all md:ease-out',
+        'sticky top-5 z-50 mx-auto w-full max-w-4xl border-transparent border-b md:rounded-md md:border md:transition-all md:ease-out',
         {
           'border-border bg-background/95 backdrop-blur-sm supports-backdrop-filter:bg-background/50 md:top-2 md:max-w-3xl md:shadow':
             scrolled,
@@ -47,12 +47,24 @@ export function Header() {
           },
         )}
       >
-        <Link to="/" href="#">
+        <Link to="/" href="#" className="">
           {/* <h1 className="text-4xl font-bold">Brain Box</h1> */}
           {theme === 'dark' ? (
-            <img src="/logo-dark.png" alt="Logo" width={100} height={100} />
+            <img
+              src="/logo.jpg"
+              className="rounded-md"
+              alt="Logo"
+              width={200}
+              height={200}
+            />
           ) : (
-            <img src="/logo.png" alt="Logo" width={100} height={100} />
+            <img
+              src="/logo.jpg"
+              className="rounded-md"
+              alt="Logo"
+              width={200}
+              height={200}
+            />
           )}
         </Link>
         <div className="hidden items-center gap-1 md:flex">
@@ -70,8 +82,8 @@ export function Header() {
             <>
               <Button
                 variant="ghost"
-                onClick={() =>
-                  authClient.signOut({
+                onClick={async () =>
+                  await authClient.signOut({
                     fetchOptions: {
                       onSuccess: () => {
                         toast.success('Logged out successfully')
