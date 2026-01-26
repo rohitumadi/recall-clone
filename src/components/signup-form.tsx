@@ -20,8 +20,10 @@ import { signUpSchema } from '@/schemas/auth'
 import { authClient } from '@/lib/auth-client'
 import { toast } from 'sonner'
 import { useNavigate } from '@tanstack/react-router'
+import { useTransition } from 'react'
 
 export function SignUpForm({ ...props }: React.ComponentProps<typeof Card>) {
+  const [isPending, startTransition] = useTransition()
   const navigate = useNavigate()
   const form = useForm({
     defaultValues: {
@@ -33,20 +35,22 @@ export function SignUpForm({ ...props }: React.ComponentProps<typeof Card>) {
       onSubmit: signUpSchema,
     },
     onSubmit: async ({ value }) => {
-      authClient.signUp.email({
-        email: value.email,
-        password: value.password,
-        name: value.name,
-        // callbackURL: '/dashboard',
-        fetchOptions: {
-          onSuccess: () => {
-            toast.success('Account created successfully')
-            navigate({ to: '/dashboard' })
+      startTransition(async () => {
+        authClient.signUp.email({
+          email: value.email,
+          password: value.password,
+          name: value.name,
+          // callbackURL: '/dashboard',
+          fetchOptions: {
+            onSuccess: () => {
+              toast.success('Account created successfully')
+              navigate({ to: '/dashboard' })
+            },
+            onError: ({ error }) => {
+              toast.error(error.message)
+            },
           },
-          onError: ({ error }) => {
-            toast.error(error.message)
-          },
-        },
+        })
       })
     },
   })
@@ -147,7 +151,9 @@ export function SignUpForm({ ...props }: React.ComponentProps<typeof Card>) {
 
             <FieldGroup>
               <Field>
-                <Button type="submit">Create Account</Button>
+                <Button disabled={isPending} type="submit">
+                  {isPending ? 'Creating...' : 'Create Account'}
+                </Button>
 
                 <FieldDescription className="px-6 text-center">
                   Already have an account? <Link to="/login">Sign in</Link>
