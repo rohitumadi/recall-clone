@@ -44,30 +44,19 @@ const navItems: NavPrimaryProps['items'] = linkOptions([
 ])
 
 export function AppSidebar({ user }: NavUserProps) {
-  const { theme } = useTheme()
   return (
     <Sidebar collapsible="icon">
       <SidebarHeader>
         <SidebarMenu>
           <SidebarMenuItem>
             <Link to="/" href="#">
-              {theme === 'dark' ? (
-                <img
-                  src="/logo.jpg"
-                  className="rounded-md"
-                  alt="Logo"
-                  width={200}
-                  height={200}
-                />
-              ) : (
-                <img
-                  src="/logo.jpg"
-                  className="rounded-md"
-                  alt="Logo"
-                  width={200}
-                  height={200}
-                />
-              )}
+              <img
+                src="/logo.jpg"
+                className="rounded-md"
+                alt="Logo"
+                width={200}
+                height={200}
+              />
             </Link>
           </SidebarMenuItem>
         </SidebarMenu>

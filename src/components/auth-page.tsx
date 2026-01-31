@@ -1,11 +1,10 @@
-'use client'
-
 import { Button } from '@/components/ui/button'
 import { ChevronLeftIcon } from 'lucide-react'
 import { FloatingPaths } from '@/components/floating-paths'
 import { Link, useRouterState } from '@tanstack/react-router'
 import { LoginForm } from './login-form'
 import { SignUpForm } from './signup-form'
+import { useTheme } from '@/lib/theme-provider'
 
 export function AuthPage() {
   const pathname = useRouterState({
@@ -15,9 +14,15 @@ export function AuthPage() {
     <main className="relative md:h-screen md:overflow-hidden lg:grid lg:grid-cols-2">
       <div className="relative hidden h-full flex-col border-r bg-secondary p-10 lg:flex dark:bg-secondary/20">
         <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-background" />
-
-        <h1 className="text-4xl font-bold">Brain Box</h1>
-
+        <Link to="/" href="#">
+          <img
+            src="/logo.jpg"
+            className="rounded-md"
+            alt="Logo"
+            width={200}
+            height={200}
+          />
+        </Link>
         <div className="z-10 mt-auto">
           <blockquote className="space-y-2">
             <p className="text-xl">
