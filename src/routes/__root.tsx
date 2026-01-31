@@ -2,8 +2,6 @@ import { HeadContent, Scripts, createRootRoute } from '@tanstack/react-router'
 import { TanStackRouterDevtoolsPanel } from '@tanstack/react-router-devtools'
 import { TanStackDevtools } from '@tanstack/react-devtools'
 
-import { Header } from '../components/Header'
-
 import appCss from '../styles.css?url'
 import { ThemeProvider } from '@/lib/theme-provider'
 import { Toaster } from 'sonner'
@@ -19,7 +17,7 @@ export const Route = createRootRoute({
         content: 'width=device-width, initial-scale=1',
       },
       {
-        title: 'TanStack Start Starter',
+        title: 'Brain Box',
       },
     ],
     links: [
@@ -38,6 +36,7 @@ function RootDocument({ children }: { children: React.ReactNode }) {
     <html lang="en" suppressHydrationWarning>
       <head>
         <HeadContent />
+        <link rel="icon" href="/favicon2.png" />
       </head>
       <body>
         <ThemeProvider>

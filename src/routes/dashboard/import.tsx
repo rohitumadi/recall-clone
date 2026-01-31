@@ -13,8 +13,8 @@ import {
   FieldLabel,
 } from '@/components/ui/field'
 import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { scrapeUrlFn } from '@/data/items'
 import { importBulkSchema, importSchema } from '@/schemas/import'
 import { useForm } from '@tanstack/react-form'
 import { createFileRoute } from '@tanstack/react-router'
@@ -35,7 +35,10 @@ function RouteComponent() {
       onSubmit: importSchema,
     },
     onSubmit: async ({ value }) => {
-      startTransition(async () => {})
+      startTransition(async () => {
+        await scrapeUrlFn({ data: value })
+        form.reset()
+      })
     },
   })
   const bulkForm = useForm({

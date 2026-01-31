@@ -46,7 +46,7 @@ export function SignUpForm({ ...props }: React.ComponentProps<typeof Card>) {
               toast.success('Account created successfully')
               navigate({ to: '/dashboard' })
             },
-            onError: ({ error }) => {
+            onError: ({ error }: { error: Error }) => {
               toast.error(error.message)
             },
           },
