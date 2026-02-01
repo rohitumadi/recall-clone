@@ -6,6 +6,7 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card'
+import { Checkbox } from '@/components/ui/checkbox'
 import {
   Field,
   FieldError,
@@ -13,13 +14,16 @@ import {
   FieldLabel,
 } from '@/components/ui/field'
 import { Input } from '@/components/ui/input'
+import { ScrollArea } from '@/components/ui/scroll-area'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { scrapeUrlFn } from '@/data/items'
+import { mapUrlFn, scrapeUrlFn } from '@/data/items'
 import { importBulkSchema, importSchema } from '@/schemas/import'
+import { SearchResultWeb } from '@mendable/firecrawl-js'
 import { useForm } from '@tanstack/react-form'
 import { createFileRoute } from '@tanstack/react-router'
 import { Globe, Link, Loader2 } from 'lucide-react'
-import { useTransition } from 'react'
+import { useState, useTransition } from 'react'
+import { toast } from 'sonner'
 
 export const Route = createFileRoute('/dashboard/import')({
   component: RouteComponent,
@@ -27,6 +31,40 @@ export const Route = createFileRoute('/dashboard/import')({
 
 function RouteComponent() {
   const [isPending, startTransition] = useTransition()
+  const [discoveredLinks, setDiscoveredLinks] = useState<
+    Array<SearchResultWeb>
+  >([
+    {
+      url: 'https://docs.firecrawl.dev/features/scrape',
+      title: 'Scrape | Firecrawl',
+      description: 'Turn any url into clean data',
+    },
+    {
+      url: 'https://www.firecrawl.dev/blog/5_easy_ways_to_access_glm_4_5',
+      title: '5 Easy Ways to Access GLM-4.5',
+      description:
+        'Discover how to access GLM-4.5 models locally, through chat applications, via the official API, and using the LLM marketplaces API for seamless integration i...',
+    },
+    {
+      url: 'https://www.firecrawl.dev/playground',
+      title: 'Playground - Firecrawl',
+      description:
+        'Preview the API response and get the code snippets for the API',
+    },
+    {
+      url: 'https://www.firecrawl.dev/?testId=2a7e0542-077b-4eff-bec7-0130395570d6',
+      title: 'Firecrawl - The Web Data API for AI',
+      description:
+        'The web crawling, scraping, and search API for AI. Built for scale. Firecrawl delivers the entire internet to AI agents and builders. Clean, structured, and ...',
+    },
+    {
+      url: 'https://www.firecrawl.dev/?testId=af391f07-ca0e-40d3-8ff2-b1ecf2e3fcde',
+      title: 'Firecrawl - The Web Data API for AI',
+      description:
+        'The web crawling, scraping, and search API for AI. Built for scale. Firecrawl delivers the entire internet to AI agents and builders. Clean, structured, and ...',
+    },
+  ])
+  const [selectedUrls, setSelectedUrls] = useState<Set<string>>(new Set())
   const form = useForm({
     defaultValues: {
       url: '',
@@ -38,6 +76,7 @@ function RouteComponent() {
       startTransition(async () => {
         await scrapeUrlFn({ data: value })
         form.reset()
+        toast.success('URL imported successfully')
       })
     },
   })
@@ -50,11 +89,38 @@ function RouteComponent() {
       onSubmit: importBulkSchema,
     },
     onSubmit: async ({ value }) => {
-      startTransition(async () => {})
+      startTransition(async () => {
+        const data = await mapUrlFn({ data: value })
+        if (!data) {
+          toast.error('No links found')
+          return
+        }
+        setDiscoveredLinks(data)
+        bulkForm.reset()
+        toast.success('URL imported successfully')
+      })
     },
   })
+  function handleToggleSelectAll() {
+    if (selectedUrls.size === discoveredLinks.length) {
+      setSelectedUrls(new Set())
+      return
+    }
+    const urls = discoveredLinks.map((link) => link.url)
+    setSelectedUrls(new Set(urls))
+  }
+
+  function handleToggleSelect(url: string) {
+    const urls = new Set(selectedUrls)
+    if (urls.has(url)) {
+      urls.delete(url)
+    } else {
+      urls.add(url)
+    }
+    setSelectedUrls(urls)
+  }
   return (
-    <div className="relative w-full min-h-screen overflow-hidden">
+    <div className="relative w-full min-h-screen">
       {/* Animated Gradient Background */}
       <div className="absolute inset-0 bg-gradient-to-br from-orange-50 via-background to-blue-50 dark:from-orange-950/20 dark:via-background dark:to-blue-950/20" />
 
@@ -66,7 +132,7 @@ function RouteComponent() {
       <div className="absolute bottom-20 right-10 w-96 h-96 bg-blue-200/30 dark:bg-blue-500/10 rounded-full blur-3xl animate-pulse delay-1000" />
 
       {/* Main Content */}
-      <div className="relative z-10 w-full h-full gap-8 flex flex-col lg:flex-row items-start justify-center p-8 max-w-7xl mx-auto">
+      <div className="relative z-10 w-full gap-8 flex flex-col lg:flex-row items-start justify-center p-8 max-w-7xl mx-auto">
         {/* Left Section - Main Form */}
         <div className="flex-1 flex flex-col items-center gap-6 w-full max-w-2xl">
           <div className="flex flex-col items-center gap-4 text-center">
@@ -175,7 +241,8 @@ function RouteComponent() {
                     <div>
                       <CardTitle>Bulk Import</CardTitle>
                       <CardDescription>
-                        Discover and import URLs from multiple webpages 🚀
+                        Discover and import URLs from multiple webpages (limit
+                        5) 🚀
                       </CardDescription>
                     </div>
                   </div>
@@ -260,6 +327,68 @@ function RouteComponent() {
                       )}
                     </FieldGroup>
                   </form>
+                  {/* Discovered Links */}
+                  {discoveredLinks.length > 0 && (
+                    <div className="mt-6 w-full">
+                      <div className="flex items-center justify-between mb-2">
+                        <h2 className="text-lg font-semibold">
+                          Discovered Links
+                        </h2>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={handleToggleSelectAll}
+                        >
+                          Select All
+                        </Button>
+                      </div>
+                      <ScrollArea className="w-full h-96 rounded-md border">
+                        <div className="p-4 space-y-2">
+                          {discoveredLinks.map((link, index) => (
+                            <div
+                              key={index}
+                              className="flex items-start cursor-pointer hover:bg-accent gap-3 p-3 border rounded-lg min-w-0"
+                            >
+                              <Checkbox
+                                checked={selectedUrls.has(link.url)}
+                                onCheckedChange={() =>
+                                  handleToggleSelect(link.url)
+                                }
+                                className="mt-1 flex-shrink-0"
+                              />
+                              <div className="min-w-0 flex-1 overflow-hidden">
+                                <p className="truncate text-sm font-medium">
+                                  {link.title ?? 'Title has not been found'}
+                                </p>
+                                <p className="text-muted-foreground line-clamp-2 text-xs mt-1">
+                                  {link.description ??
+                                    'Description has not been found'}
+                                </p>
+                                <p className="text-muted-foreground truncate text-xs mt-1 opacity-70">
+                                  {link.url}
+                                </p>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </ScrollArea>
+                      <div className="w-full p-2">
+                        {isPending ? (
+                          <Button disabled className="h-12 w-full text-base">
+                            <Loader2 className="size-4 animate-spin" />
+                            Importing...
+                          </Button>
+                        ) : (
+                          <Button
+                            type="submit"
+                            className="h-12 w-full text-base"
+                          >
+                            Import URLs
+                          </Button>
+                        )}
+                      </div>
+                    </div>
+                  )}
                 </CardContent>
               </Card>
             </TabsContent>
@@ -267,7 +396,7 @@ function RouteComponent() {
         </div>
 
         {/* Right Section - Info Cards */}
-        <div className="flex-shrink-0 w-full lg:w-80 flex flex-col gap-4">
+        <div className="flex-shrink-0 w-full lg:w-80 flex flex-col gap-4 lg:sticky lg:top-8 lg:self-start lg:max-h-[calc(100vh-4rem)] lg:overflow-y-auto">
           <Card className="bg-background/60 backdrop-blur-sm border-2">
             <CardHeader>
               <CardTitle className="text-lg flex items-center gap-2">

@@ -4,7 +4,6 @@ import { FloatingPaths } from '@/components/floating-paths'
 import { Link, useRouterState } from '@tanstack/react-router'
 import { LoginForm } from './login-form'
 import { SignUpForm } from './signup-form'
-import { useTheme } from '@/lib/theme-provider'
 
 export function AuthPage() {
   const pathname = useRouterState({
@@ -61,8 +60,8 @@ export function AuthPage() {
               className="underline underline-offset-4 hover:text-primary"
               to="/terms"
             >
-              Terms of Service
-            </Link>{' '}
+              Terms of Service{' '}
+            </Link>
             and{' '}
             <Link
               className="underline underline-offset-4 hover:text-primary"

@@ -12,7 +12,6 @@ import {
   SidebarRail,
 } from '@/components/ui/sidebar'
 import { Link, linkOptions } from '@tanstack/react-router'
-import { useTheme } from '@/lib/theme-provider'
 import { NavPrimaryProps, NavUserProps } from '@/lib/types'
 
 const navItems: NavPrimaryProps['items'] = linkOptions([

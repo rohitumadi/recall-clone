@@ -22,7 +22,9 @@ import { NavPrimaryProps } from '@/lib/types'
 export function NavPrimary({ items }: NavPrimaryProps) {
   return (
     <SidebarGroup className="group-data-[collapsible=icon]:hidden">
-      <SidebarGroupLabel>Projects</SidebarGroupLabel>
+      <SidebarGroupLabel className="text-lg font-semibold">
+        Projects
+      </SidebarGroupLabel>
       <SidebarGroupContent>
         <SidebarMenu>
           {items.map((item) => (
@@ -34,7 +36,7 @@ export function NavPrimary({ items }: NavPrimaryProps) {
                   to={item.to}
                 >
                   <item.icon />
-                  <span>{item.title}</span>
+                  <span className="text-sm">{item.title}</span>
                 </Link>
               </SidebarMenuButton>
               {/* <DropdownMenu>
