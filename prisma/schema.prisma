@@ -94,7 +94,7 @@ model SavedItem{
 
   publishedAt DateTime?
 
-  authorImage String?
+  ogImage String?
 
   userId String
 

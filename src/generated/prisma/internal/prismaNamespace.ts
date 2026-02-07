@@ -885,7 +885,7 @@ export const SavedItemScalarFieldEnum = {
   author: 'author',
   status: 'status',
   publishedAt: 'publishedAt',
-  authorImage: 'authorImage',
+  ogImage: 'ogImage',
   userId: 'userId',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'

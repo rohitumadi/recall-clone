@@ -33,7 +33,7 @@ export type SavedItemMinAggregateOutputType = {
   author: string | null
   status: $Enums.ItemStatus | null
   publishedAt: Date | null
-  authorImage: string | null
+  ogImage: string | null
   userId: string | null
   createdAt: Date | null
   updatedAt: Date | null
@@ -48,7 +48,7 @@ export type SavedItemMaxAggregateOutputType = {
   author: string | null
   status: $Enums.ItemStatus | null
   publishedAt: Date | null
-  authorImage: string | null
+  ogImage: string | null
   userId: string | null
   createdAt: Date | null
   updatedAt: Date | null
@@ -64,7 +64,7 @@ export type SavedItemCountAggregateOutputType = {
   author: number
   status: number
   publishedAt: number
-  authorImage: number
+  ogImage: number
   userId: number
   createdAt: number
   updatedAt: number
@@ -81,7 +81,7 @@ export type SavedItemMinAggregateInputType = {
   author?: true
   status?: true
   publishedAt?: true
-  authorImage?: true
+  ogImage?: true
   userId?: true
   createdAt?: true
   updatedAt?: true
@@ -96,7 +96,7 @@ export type SavedItemMaxAggregateInputType = {
   author?: true
   status?: true
   publishedAt?: true
-  authorImage?: true
+  ogImage?: true
   userId?: true
   createdAt?: true
   updatedAt?: true
@@ -112,7 +112,7 @@ export type SavedItemCountAggregateInputType = {
   author?: true
   status?: true
   publishedAt?: true
-  authorImage?: true
+  ogImage?: true
   userId?: true
   createdAt?: true
   updatedAt?: true
@@ -201,7 +201,7 @@ export type SavedItemGroupByOutputType = {
   author: string | null
   status: $Enums.ItemStatus
   publishedAt: Date | null
-  authorImage: string | null
+  ogImage: string | null
   userId: string
   createdAt: Date
   updatedAt: Date
@@ -238,7 +238,7 @@ export type SavedItemWhereInput = {
   author?: Prisma.StringNullableFilter<"SavedItem"> | string | null
   status?: Prisma.EnumItemStatusFilter<"SavedItem"> | $Enums.ItemStatus
   publishedAt?: Prisma.DateTimeNullableFilter<"SavedItem"> | Date | string | null
-  authorImage?: Prisma.StringNullableFilter<"SavedItem"> | string | null
+  ogImage?: Prisma.StringNullableFilter<"SavedItem"> | string | null
   userId?: Prisma.StringFilter<"SavedItem"> | string
   createdAt?: Prisma.DateTimeFilter<"SavedItem"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"SavedItem"> | Date | string
@@ -255,7 +255,7 @@ export type SavedItemOrderByWithRelationInput = {
   author?: Prisma.SortOrderInput | Prisma.SortOrder
   status?: Prisma.SortOrder
   publishedAt?: Prisma.SortOrderInput | Prisma.SortOrder
-  authorImage?: Prisma.SortOrderInput | Prisma.SortOrder
+  ogImage?: Prisma.SortOrderInput | Prisma.SortOrder
   userId?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
@@ -275,7 +275,7 @@ export type SavedItemWhereUniqueInput = Prisma.AtLeast<{
   author?: Prisma.StringNullableFilter<"SavedItem"> | string | null
   status?: Prisma.EnumItemStatusFilter<"SavedItem"> | $Enums.ItemStatus
   publishedAt?: Prisma.DateTimeNullableFilter<"SavedItem"> | Date | string | null
-  authorImage?: Prisma.StringNullableFilter<"SavedItem"> | string | null
+  ogImage?: Prisma.StringNullableFilter<"SavedItem"> | string | null
   userId?: Prisma.StringFilter<"SavedItem"> | string
   createdAt?: Prisma.DateTimeFilter<"SavedItem"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"SavedItem"> | Date | string
@@ -292,7 +292,7 @@ export type SavedItemOrderByWithAggregationInput = {
   author?: Prisma.SortOrderInput | Prisma.SortOrder
   status?: Prisma.SortOrder
   publishedAt?: Prisma.SortOrderInput | Prisma.SortOrder
-  authorImage?: Prisma.SortOrderInput | Prisma.SortOrder
+  ogImage?: Prisma.SortOrderInput | Prisma.SortOrder
   userId?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
@@ -314,7 +314,7 @@ export type SavedItemScalarWhereWithAggregatesInput = {
   author?: Prisma.StringNullableWithAggregatesFilter<"SavedItem"> | string | null
   status?: Prisma.EnumItemStatusWithAggregatesFilter<"SavedItem"> | $Enums.ItemStatus
   publishedAt?: Prisma.DateTimeNullableWithAggregatesFilter<"SavedItem"> | Date | string | null
-  authorImage?: Prisma.StringNullableWithAggregatesFilter<"SavedItem"> | string | null
+  ogImage?: Prisma.StringNullableWithAggregatesFilter<"SavedItem"> | string | null
   userId?: Prisma.StringWithAggregatesFilter<"SavedItem"> | string
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"SavedItem"> | Date | string
   updatedAt?: Prisma.DateTimeWithAggregatesFilter<"SavedItem"> | Date | string
@@ -330,7 +330,7 @@ export type SavedItemCreateInput = {
   author?: string | null
   status?: $Enums.ItemStatus
   publishedAt?: Date | string | null
-  authorImage?: string | null
+  ogImage?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   user: Prisma.UserCreateNestedOneWithoutSavedItemsInput
@@ -346,7 +346,7 @@ export type SavedItemUncheckedCreateInput = {
   author?: string | null
   status?: $Enums.ItemStatus
   publishedAt?: Date | string | null
-  authorImage?: string | null
+  ogImage?: string | null
   userId: string
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -362,7 +362,7 @@ export type SavedItemUpdateInput = {
   author?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.EnumItemStatusFieldUpdateOperationsInput | $Enums.ItemStatus
   publishedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  authorImage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  ogImage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   user?: Prisma.UserUpdateOneRequiredWithoutSavedItemsNestedInput
@@ -378,7 +378,7 @@ export type SavedItemUncheckedUpdateInput = {
   author?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.EnumItemStatusFieldUpdateOperationsInput | $Enums.ItemStatus
   publishedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  authorImage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  ogImage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   userId?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -394,7 +394,7 @@ export type SavedItemCreateManyInput = {
   author?: string | null
   status?: $Enums.ItemStatus
   publishedAt?: Date | string | null
-  authorImage?: string | null
+  ogImage?: string | null
   userId: string
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -410,7 +410,7 @@ export type SavedItemUpdateManyMutationInput = {
   author?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.EnumItemStatusFieldUpdateOperationsInput | $Enums.ItemStatus
   publishedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  authorImage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  ogImage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -425,7 +425,7 @@ export type SavedItemUncheckedUpdateManyInput = {
   author?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.EnumItemStatusFieldUpdateOperationsInput | $Enums.ItemStatus
   publishedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  authorImage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  ogImage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   userId?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -459,7 +459,7 @@ export type SavedItemCountOrderByAggregateInput = {
   author?: Prisma.SortOrder
   status?: Prisma.SortOrder
   publishedAt?: Prisma.SortOrder
-  authorImage?: Prisma.SortOrder
+  ogImage?: Prisma.SortOrder
   userId?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
@@ -474,7 +474,7 @@ export type SavedItemMaxOrderByAggregateInput = {
   author?: Prisma.SortOrder
   status?: Prisma.SortOrder
   publishedAt?: Prisma.SortOrder
-  authorImage?: Prisma.SortOrder
+  ogImage?: Prisma.SortOrder
   userId?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
@@ -489,7 +489,7 @@ export type SavedItemMinOrderByAggregateInput = {
   author?: Prisma.SortOrder
   status?: Prisma.SortOrder
   publishedAt?: Prisma.SortOrder
-  authorImage?: Prisma.SortOrder
+  ogImage?: Prisma.SortOrder
   userId?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
@@ -560,7 +560,7 @@ export type SavedItemCreateWithoutUserInput = {
   author?: string | null
   status?: $Enums.ItemStatus
   publishedAt?: Date | string | null
-  authorImage?: string | null
+  ogImage?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
 }
@@ -575,7 +575,7 @@ export type SavedItemUncheckedCreateWithoutUserInput = {
   author?: string | null
   status?: $Enums.ItemStatus
   publishedAt?: Date | string | null
-  authorImage?: string | null
+  ogImage?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
 }
@@ -619,7 +619,7 @@ export type SavedItemScalarWhereInput = {
   author?: Prisma.StringNullableFilter<"SavedItem"> | string | null
   status?: Prisma.EnumItemStatusFilter<"SavedItem"> | $Enums.ItemStatus
   publishedAt?: Prisma.DateTimeNullableFilter<"SavedItem"> | Date | string | null
-  authorImage?: Prisma.StringNullableFilter<"SavedItem"> | string | null
+  ogImage?: Prisma.StringNullableFilter<"SavedItem"> | string | null
   userId?: Prisma.StringFilter<"SavedItem"> | string
   createdAt?: Prisma.DateTimeFilter<"SavedItem"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"SavedItem"> | Date | string
@@ -635,7 +635,7 @@ export type SavedItemCreateManyUserInput = {
   author?: string | null
   status?: $Enums.ItemStatus
   publishedAt?: Date | string | null
-  authorImage?: string | null
+  ogImage?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
 }
@@ -650,7 +650,7 @@ export type SavedItemUpdateWithoutUserInput = {
   author?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.EnumItemStatusFieldUpdateOperationsInput | $Enums.ItemStatus
   publishedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  authorImage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  ogImage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -665,7 +665,7 @@ export type SavedItemUncheckedUpdateWithoutUserInput = {
   author?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.EnumItemStatusFieldUpdateOperationsInput | $Enums.ItemStatus
   publishedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  authorImage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  ogImage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -680,7 +680,7 @@ export type SavedItemUncheckedUpdateManyWithoutUserInput = {
   author?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.EnumItemStatusFieldUpdateOperationsInput | $Enums.ItemStatus
   publishedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  authorImage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  ogImage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -697,7 +697,7 @@ export type SavedItemSelect<ExtArgs extends runtime.Types.Extensions.InternalArg
   author?: boolean
   status?: boolean
   publishedAt?: boolean
-  authorImage?: boolean
+  ogImage?: boolean
   userId?: boolean
   createdAt?: boolean
   updatedAt?: boolean
@@ -714,7 +714,7 @@ export type SavedItemSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Ext
   author?: boolean
   status?: boolean
   publishedAt?: boolean
-  authorImage?: boolean
+  ogImage?: boolean
   userId?: boolean
   createdAt?: boolean
   updatedAt?: boolean
@@ -731,7 +731,7 @@ export type SavedItemSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Ext
   author?: boolean
   status?: boolean
   publishedAt?: boolean
-  authorImage?: boolean
+  ogImage?: boolean
   userId?: boolean
   createdAt?: boolean
   updatedAt?: boolean
@@ -748,13 +748,13 @@ export type SavedItemSelectScalar = {
   author?: boolean
   status?: boolean
   publishedAt?: boolean
-  authorImage?: boolean
+  ogImage?: boolean
   userId?: boolean
   createdAt?: boolean
   updatedAt?: boolean
 }
 
-export type SavedItemOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "url" | "title" | "content" | "summary" | "tags" | "author" | "status" | "publishedAt" | "authorImage" | "userId" | "createdAt" | "updatedAt", ExtArgs["result"]["savedItem"]>
+export type SavedItemOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "url" | "title" | "content" | "summary" | "tags" | "author" | "status" | "publishedAt" | "ogImage" | "userId" | "createdAt" | "updatedAt", ExtArgs["result"]["savedItem"]>
 export type SavedItemInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
 }
@@ -780,7 +780,7 @@ export type $SavedItemPayload<ExtArgs extends runtime.Types.Extensions.InternalA
     author: string | null
     status: $Enums.ItemStatus
     publishedAt: Date | null
-    authorImage: string | null
+    ogImage: string | null
     userId: string
     createdAt: Date
     updatedAt: Date
@@ -1217,7 +1217,7 @@ export interface SavedItemFieldRefs {
   readonly author: Prisma.FieldRef<"SavedItem", 'String'>
   readonly status: Prisma.FieldRef<"SavedItem", 'ItemStatus'>
   readonly publishedAt: Prisma.FieldRef<"SavedItem", 'DateTime'>
-  readonly authorImage: Prisma.FieldRef<"SavedItem", 'String'>
+  readonly ogImage: Prisma.FieldRef<"SavedItem", 'String'>
   readonly userId: Prisma.FieldRef<"SavedItem", 'String'>
   readonly createdAt: Prisma.FieldRef<"SavedItem", 'DateTime'>
   readonly updatedAt: Prisma.FieldRef<"SavedItem", 'DateTime'>

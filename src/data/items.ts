@@ -21,7 +21,7 @@ export const scrapeUrlFn = createServerFn({ method: 'POST' })
 
     try {
       // Convert Zod schema to JSON Schema for Zod v4 compatibility
-      const jsonSchema = extractSchema.toJSONSchema()
+      const jsonSchema = z.toJSONSchema(extractSchema)
 
       const doc = await firecrawl.scrape(url, {
         formats: [
@@ -31,7 +31,12 @@ export const scrapeUrlFn = createServerFn({ method: 'POST' })
             schema: jsonSchema, // Use the converted JSON Schema instead of Zod schema
           },
         ],
+        location: {
+          country: 'IN',
+          languages: ['en'],
+        },
         onlyMainContent: true,
+        proxy: 'auto',
       })
 
       // Try to get JSON data
@@ -63,7 +68,7 @@ export const scrapeUrlFn = createServerFn({ method: 'POST' })
           status: 'COMPLETED',
           content: doc.markdown || null,
           author: author,
-          authorImage: doc.metadata?.authorImage || null,
+          ogImage: doc.metadata?.ogImage || null,
           publishedAt: publishedAt,
         },
       })
@@ -101,4 +106,105 @@ export const mapUrlFn = createServerFn({ method: 'POST' })
     } catch (error) {
       console.log(error)
     }
+  })
+
+export const bulkScrapeFn = createServerFn({ method: 'POST' })
+  .middleware([authFnMiddleware])
+  .inputValidator(
+    z.object({
+      urls: z.array(z.url()),
+    }),
+  )
+  .handler(async ({ data, context }) => {
+    const { urls } = data
+    const session = context.session
+    for (let i = 0; i < urls.length; i++) {
+      const url = urls[i]
+      const item = await prisma.savedItem.create({
+        data: {
+          url: url,
+          userId: session.user.id,
+          status: 'PENDING',
+        },
+      })
+
+      try {
+        // Convert Zod schema to JSON Schema for Zod v4 compatibility
+        const jsonSchema = z.toJSONSchema(extractSchema)
+
+        const doc = await firecrawl.scrape(url, {
+          formats: [
+            'markdown',
+            {
+              type: 'json',
+              schema: jsonSchema, // Use the converted JSON Schema instead of Zod schema
+            },
+          ],
+          location: {
+            country: 'IN',
+            languages: ['en'],
+          },
+          onlyMainContent: true,
+          proxy: 'auto',
+        })
+
+        // Try to get JSON data
+        const jsonData = doc.json as z.infer<typeof extractSchema> | undefined
+
+        let publishedAt = null
+        let author = null
+
+        if (jsonData) {
+          console.log('Extracted JSON data:', jsonData)
+          author = jsonData.author || null
+
+          if (jsonData.publishedAt) {
+            publishedAt = new Date(jsonData.publishedAt)
+            if (isNaN(publishedAt.getTime())) {
+              publishedAt = null
+            }
+          }
+        } else {
+          console.warn('No JSON extraction data available')
+        }
+        await prisma.savedItem.update({
+          where: {
+            id: item.id,
+          },
+          data: {
+            title: doc.metadata?.title || null,
+            status: 'COMPLETED',
+            content: doc.markdown || null,
+            author: author,
+            ogImage: doc.metadata?.ogImage || null,
+            publishedAt: publishedAt,
+          },
+        })
+      } catch (error) {
+        console.error('Error scraping URL:', error)
+        await prisma.savedItem.update({
+          where: {
+            id: item.id,
+          },
+          data: {
+            status: 'FAILED',
+          },
+        })
+      }
+    }
+  })
+
+export const getItemsFn = createServerFn({ method: 'GET' })
+  .middleware([authFnMiddleware])
+  .handler(async ({ context }) => {
+    const session = context.session
+    const items = await prisma.savedItem.findMany({
+      where: {
+        userId: session.user.id,
+      },
+      orderBy: {
+        createdAt: 'desc',
+      },
+    })
+    return items
   })

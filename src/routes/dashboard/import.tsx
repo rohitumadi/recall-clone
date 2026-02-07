@@ -16,7 +16,7 @@ import {
 import { Input } from '@/components/ui/input'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { mapUrlFn, scrapeUrlFn } from '@/data/items'
+import { bulkScrapeFn, mapUrlFn, scrapeUrlFn } from '@/data/items'
 import { importBulkSchema, importSchema } from '@/schemas/import'
 import { SearchResultWeb } from '@mendable/firecrawl-js'
 import { useForm } from '@tanstack/react-form'
@@ -30,40 +30,12 @@ export const Route = createFileRoute('/dashboard/import')({
 })
 
 function RouteComponent() {
-  const [isPending, startTransition] = useTransition()
+  const [isSingleImportPending, startSingleImportTransition] = useTransition()
+  const [isDiscoverPending, startDiscoverTransition] = useTransition()
+  const [isBulkImportPending, startBulkImportTransition] = useTransition()
   const [discoveredLinks, setDiscoveredLinks] = useState<
     Array<SearchResultWeb>
-  >([
-    {
-      url: 'https://docs.firecrawl.dev/features/scrape',
-      title: 'Scrape | Firecrawl',
-      description: 'Turn any url into clean data',
-    },
-    {
-      url: 'https://www.firecrawl.dev/blog/5_easy_ways_to_access_glm_4_5',
-      title: '5 Easy Ways to Access GLM-4.5',
-      description:
-        'Discover how to access GLM-4.5 models locally, through chat applications, via the official API, and using the LLM marketplaces API for seamless integration i...',
-    },
-    {
-      url: 'https://www.firecrawl.dev/playground',
-      title: 'Playground - Firecrawl',
-      description:
-        'Preview the API response and get the code snippets for the API',
-    },
-    {
-      url: 'https://www.firecrawl.dev/?testId=2a7e0542-077b-4eff-bec7-0130395570d6',
-      title: 'Firecrawl - The Web Data API for AI',
-      description:
-        'The web crawling, scraping, and search API for AI. Built for scale. Firecrawl delivers the entire internet to AI agents and builders. Clean, structured, and ...',
-    },
-    {
-      url: 'https://www.firecrawl.dev/?testId=af391f07-ca0e-40d3-8ff2-b1ecf2e3fcde',
-      title: 'Firecrawl - The Web Data API for AI',
-      description:
-        'The web crawling, scraping, and search API for AI. Built for scale. Firecrawl delivers the entire internet to AI agents and builders. Clean, structured, and ...',
-    },
-  ])
+  >([])
   const [selectedUrls, setSelectedUrls] = useState<Set<string>>(new Set())
   const form = useForm({
     defaultValues: {
@@ -73,7 +45,7 @@ function RouteComponent() {
       onSubmit: importSchema,
     },
     onSubmit: async ({ value }) => {
-      startTransition(async () => {
+      startSingleImportTransition(async () => {
         await scrapeUrlFn({ data: value })
         form.reset()
         toast.success('URL imported successfully')
@@ -89,7 +61,7 @@ function RouteComponent() {
       onSubmit: importBulkSchema,
     },
     onSubmit: async ({ value }) => {
-      startTransition(async () => {
+      startDiscoverTransition(async () => {
         const data = await mapUrlFn({ data: value })
         if (!data) {
           toast.error('No links found')
@@ -97,7 +69,7 @@ function RouteComponent() {
         }
         setDiscoveredLinks(data)
         bulkForm.reset()
-        toast.success('URL imported successfully')
+        toast.success('URLs discovered successfully')
       })
     },
   })
@@ -118,6 +90,20 @@ function RouteComponent() {
       urls.add(url)
     }
     setSelectedUrls(urls)
+  }
+
+  function handlBulkImport() {
+    if (selectedUrls.size === 0) {
+      toast.error('No URLs selected')
+      return
+    }
+    startBulkImportTransition(async () => {
+      const data = await bulkScrapeFn({
+        data: { urls: Array.from(selectedUrls) },
+      })
+      bulkForm.reset()
+      toast.success(`${selectedUrls.size} URLs imported successfully`)
+    })
   }
   return (
     <div className="relative w-full min-h-screen">
@@ -215,7 +201,7 @@ function RouteComponent() {
                           )
                         }}
                       />
-                      {isPending ? (
+                      {isSingleImportPending ? (
                         <Button disabled className="h-12 text-base">
                           <Loader2 className="size-4 animate-spin" />
                           Importing...
@@ -315,7 +301,7 @@ function RouteComponent() {
                           )
                         }}
                       />
-                      {isPending ? (
+                      {isDiscoverPending ? (
                         <Button disabled className="h-12 text-base">
                           <Loader2 className="size-4 animate-spin" />
                           Importing...
@@ -373,7 +359,7 @@ function RouteComponent() {
                         </div>
                       </ScrollArea>
                       <div className="w-full p-2">
-                        {isPending ? (
+                        {isBulkImportPending ? (
                           <Button disabled className="h-12 w-full text-base">
                             <Loader2 className="size-4 animate-spin" />
                             Importing...
@@ -382,8 +368,9 @@ function RouteComponent() {
                           <Button
                             type="submit"
                             className="h-12 w-full text-base"
+                            onClick={handlBulkImport}
                           >
-                            Import URLs
+                            Import {selectedUrls.size} URLs
                           </Button>
                         )}
                       </div>
