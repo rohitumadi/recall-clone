@@ -5,10 +5,28 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card'
+import { Input } from '@/components/ui/input'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
 import { getItemsFn } from '@/data/items'
-import { createFileRoute, Link } from '@tanstack/react-router'
+import { ItemStatus } from '@/generated/prisma/enums'
+import { handleCopyUrlFn } from '@/lib/clipboard'
+import { createFileRoute, Link, useNavigate } from '@tanstack/react-router'
 import { Calendar, Copy, ExternalLink, User } from 'lucide-react'
 import { toast } from 'sonner'
+import { zodValidator } from '@tanstack/zod-adapter'
+import z from 'zod'
+import { useEffect, useState } from 'react'
+
+const itemsSearchParams = z.object({
+  q: z.string().default(''),
+  status: z.union([z.literal('all'), z.enum(ItemStatus)]).default('all'),
+})
 
 export const Route = createFileRoute('/dashboard/items/')({
   component: RouteComponent,
@@ -17,23 +35,43 @@ export const Route = createFileRoute('/dashboard/items/')({
     const items = await getItemsFn()
     return { items }
   },
+  validateSearch: zodValidator(itemsSearchParams),
 })
 
 function RouteComponent() {
   const { items } = Route.useLoaderData()
 
+  const { q, status } = Route.useSearch()
+  const [searchInput, setSearchInput] = useState(q)
+  const navigate = useNavigate({ from: Route.fullPath })
+  useEffect(() => {
+    if (searchInput === q) return
+    const timeout = setTimeout(() => {
+      navigate({ search: (prev) => ({ ...prev, q: searchInput }) })
+    }, 500)
+    return () => clearTimeout(timeout)
+  }, [searchInput, q, status])
+
+  const filteredItems = items.filter((item) => {
+    const matchesSearch =
+      item.title?.toLowerCase().includes(q.toLowerCase()) ||
+      item.tags?.some((tag) => tag.toLowerCase().includes(q.toLowerCase()))
+    const matchesStatus = status === 'all' || item.status === status
+    return matchesSearch && matchesStatus
+  })
+
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'COMPLETED':
-        return 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20'
+        return 'bg-black text-emerald-600 dark:text-emerald-400 border-emerald-500/20'
       case 'PROCESSING':
-        return 'bg-blue-500/10 text-blue-600 dark:text-blue-400 border-blue-500/20'
+        return 'bg-black text-blue-600 dark:text-blue-400 border-blue-500/20'
       case 'PENDING':
-        return 'bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/20'
+        return 'bg-black text-amber-600 dark:text-amber-400 border-amber-500/20'
       case 'FAILED':
-        return 'bg-red-500/10 text-red-600 dark:text-red-400 border-red-500/20'
+        return 'bg-black text-red-600 dark:text-red-400 border-red-500/20'
       default:
-        return 'bg-gray-500/10 text-gray-600 dark:text-gray-400 border-gray-500/20'
+        return 'bg-black text-gray-600 dark:text-gray-400 border-gray-500/20'
     }
   }
 
@@ -48,7 +86,7 @@ function RouteComponent() {
 
   const handleCopyUrl = (url: string, e: React.MouseEvent) => {
     e.stopPropagation()
-    navigator.clipboard.writeText(url)
+    handleCopyUrlFn(url)
     toast.success('URL copied to clipboard!')
   }
 
@@ -66,14 +104,49 @@ function RouteComponent() {
 
       {/* Main Content */}
       <div className="relative z-10 w-full p-8 max-w-7xl mx-auto">
-        <div className="mb-8">
-          <h1 className="text-5xl font-bold bg-gradient-to-r from-orange-600 to-blue-600 bg-clip-text text-transparent mb-2">
-            Saved Items
-          </h1>
-          <p className="text-muted-foreground text-lg">
-            {items.length} {items.length === 1 ? 'item' : 'items'} in your
-            collection
-          </p>
+        <div className="flex justify-between items-center mb-8">
+          <div className="mb-8 grow-2">
+            <h1 className="text-5xl font-bold bg-gradient-to-r from-orange-600 to-blue-600 bg-clip-text text-transparent mb-2">
+              Saved Items
+            </h1>
+            <p className="text-muted-foreground text-lg">
+              {items.length} {items.length === 1 ? 'item' : 'items'} in your
+              collection
+            </p>
+          </div>
+          {/* Search filter */}
+          <div className="flex gap-4 grow-8">
+            <Input
+              value={searchInput}
+              className="w-full"
+              onChange={(e) => setSearchInput(e.target.value)}
+              placeholder="Search items..."
+            />
+            <Select
+              value={status}
+              defaultValue={status}
+              onValueChange={(value) =>
+                navigate({
+                  search: (prev) => ({
+                    ...prev,
+                    status: value as typeof status,
+                  }),
+                })
+              }
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Select status" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">ALL</SelectItem>
+                {Object.values(ItemStatus).map((status) => (
+                  <SelectItem key={status} value={status}>
+                    {status}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
         </div>
 
         {items.length === 0 ? (
@@ -100,9 +173,50 @@ function RouteComponent() {
               </p>
             </CardContent>
           </Card>
+        ) : filteredItems.length === 0 ? (
+          <Card className="bg-background/60 backdrop-blur-sm border-2 border-dashed">
+            <CardContent className="flex flex-col items-center justify-center py-20">
+              <div className="w-24 h-24 bg-gradient-to-br from-orange-100 to-blue-100 dark:from-orange-950 dark:to-blue-950 rounded-full flex items-center justify-center mb-6 animate-pulse">
+                <svg
+                  className="w-12 h-12 text-orange-600 dark:text-orange-400"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+                  />
+                </svg>
+              </div>
+              <h3 className="text-2xl font-bold bg-gradient-to-r from-orange-600 to-blue-600 bg-clip-text text-transparent mb-3">
+                No Results Found
+              </h3>
+              <p className="text-muted-foreground text-center max-w-md mb-4">
+                {q && status !== 'all'
+                  ? `No items match "${q}" with status "${status}"`
+                  : q
+                    ? `No items match "${q}"`
+                    : `No items with status "${status}"`}
+              </p>
+              <div className="flex gap-3 mt-2">
+                <button
+                  onClick={() => {
+                    setSearchInput('')
+                    navigate({ search: { q: '', status: 'all' } })
+                  }}
+                  className="px-4 py-2 bg-gradient-to-r from-orange-600 to-blue-600 text-white rounded-lg hover:shadow-lg hover:scale-105 transition-all duration-200 font-medium"
+                >
+                  Clear Filters
+                </button>
+              </div>
+            </CardContent>
+          </Card>
         ) : (
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-            {items.map((item) => (
+            {filteredItems.map((item) => (
               <Card
                 key={item.id}
                 className="group relative bg-background/60 backdrop-blur-sm border-2 hover:border-orange-300 dark:hover:border-orange-700 transition-all duration-300 overflow-hidden hover:shadow-2xl hover:-translate-y-1 cursor-pointer"
