@@ -21,7 +21,8 @@ import { Calendar, Copy, ExternalLink, User } from 'lucide-react'
 import { toast } from 'sonner'
 import { zodValidator } from '@tanstack/zod-adapter'
 import z from 'zod'
-import { useEffect, useState } from 'react'
+import { Suspense, use, useEffect, useState } from 'react'
+import { Skeleton } from '@/components/ui/skeleton'
 
 const itemsSearchParams = z.object({
   q: z.string().default(''),
@@ -31,19 +32,53 @@ const itemsSearchParams = z.object({
 export const Route = createFileRoute('/dashboard/items/')({
   component: RouteComponent,
   //loader is isomorphic that is on hard reload it will run on server and on client navigation it will run on client
-  loader: async () => {
-    const items = await getItemsFn()
-    return { items }
-  },
+  // loader: async () => {
+  //   const items = await getItemsFn()
+  //   return { items }
+  // },
+  loader: () => ({
+    itemsPromise: getItemsFn(), //this data is unawaited
+  }),
   validateSearch: zodValidator(itemsSearchParams),
 })
 
-function RouteComponent() {
-  const { items } = Route.useLoaderData()
+// Helper functions
+const getStatusColor = (status: string) => {
+  switch (status) {
+    case 'COMPLETED':
+      return 'bg-black text-emerald-600 dark:text-emerald-400 border-emerald-500/20'
+    case 'PROCESSING':
+      return 'bg-black text-blue-600 dark:text-blue-400 border-blue-500/20'
+    case 'PENDING':
+      return 'bg-black text-amber-600 dark:text-amber-400 border-amber-500/20'
+    case 'FAILED':
+      return 'bg-black text-red-600 dark:text-red-400 border-red-500/20'
+    default:
+      return 'bg-black text-gray-600 dark:text-gray-400 border-gray-500/20'
+  }
+}
 
+const formatDate = (date: Date | null) => {
+  if (!date) return null
+  return new Date(date).toLocaleDateString('en-US', {
+    year: 'numeric',
+    month: 'short',
+    day: 'numeric',
+  })
+}
+
+const handleCopyUrl = (url: string, e: React.MouseEvent) => {
+  e.stopPropagation()
+  handleCopyUrlFn(url)
+  toast.success('URL copied to clipboard!')
+}
+
+function RouteComponent() {
+  const { itemsPromise } = Route.useLoaderData()
   const { q, status } = Route.useSearch()
   const [searchInput, setSearchInput] = useState(q)
   const navigate = useNavigate({ from: Route.fullPath })
+
   useEffect(() => {
     if (searchInput === q) return
     const timeout = setTimeout(() => {
@@ -51,44 +86,6 @@ function RouteComponent() {
     }, 500)
     return () => clearTimeout(timeout)
   }, [searchInput, q, status])
-
-  const filteredItems = items.filter((item) => {
-    const matchesSearch =
-      item.title?.toLowerCase().includes(q.toLowerCase()) ||
-      item.tags?.some((tag) => tag.toLowerCase().includes(q.toLowerCase()))
-    const matchesStatus = status === 'all' || item.status === status
-    return matchesSearch && matchesStatus
-  })
-
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'COMPLETED':
-        return 'bg-black text-emerald-600 dark:text-emerald-400 border-emerald-500/20'
-      case 'PROCESSING':
-        return 'bg-black text-blue-600 dark:text-blue-400 border-blue-500/20'
-      case 'PENDING':
-        return 'bg-black text-amber-600 dark:text-amber-400 border-amber-500/20'
-      case 'FAILED':
-        return 'bg-black text-red-600 dark:text-red-400 border-red-500/20'
-      default:
-        return 'bg-black text-gray-600 dark:text-gray-400 border-gray-500/20'
-    }
-  }
-
-  const formatDate = (date: Date | null) => {
-    if (!date) return null
-    return new Date(date).toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric',
-    })
-  }
-
-  const handleCopyUrl = (url: string, e: React.MouseEvent) => {
-    e.stopPropagation()
-    handleCopyUrlFn(url)
-    toast.success('URL copied to clipboard!')
-  }
 
   return (
     <div className="relative w-full min-h-screen">
@@ -109,10 +106,13 @@ function RouteComponent() {
             <h1 className="text-5xl font-bold bg-gradient-to-r from-orange-600 to-blue-600 bg-clip-text text-transparent mb-2">
               Saved Items
             </h1>
-            <p className="text-muted-foreground text-lg">
-              {items.length} {items.length === 1 ? 'item' : 'items'} in your
-              collection
-            </p>
+            <Suspense
+              fallback={
+                <p className="text-muted-foreground text-lg">Loading...</p>
+              }
+            >
+              <ItemCount itemsPromise={itemsPromise} />
+            </Suspense>
           </div>
           {/* Search filter */}
           <div className="flex gap-4 grow-8">
@@ -148,80 +148,131 @@ function RouteComponent() {
             </Select>
           </div>
         </div>
+        <Suspense
+          fallback={
+            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+              {Array.from({ length: 6 }).map((_, i) => (
+                <ItemSkeleton key={i} />
+              ))}
+            </div>
+          }
+        >
+          <ItemsContent itemsPromise={itemsPromise} q={q} status={status} />
+        </Suspense>
+      </div>
+    </div>
+  )
+}
 
-        {items.length === 0 ? (
-          <Card className="bg-background/60 backdrop-blur-sm border-2">
-            <CardContent className="flex flex-col items-center justify-center py-20">
-              <div className="w-24 h-24 bg-gradient-to-br from-orange-100 to-blue-100 dark:from-orange-950 dark:to-blue-950 rounded-full flex items-center justify-center mb-4">
-                <svg
-                  className="w-12 h-12 text-orange-600 dark:text-orange-400"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M5 19a2 2 0 01-2-2V7a2 2 0 012-2h4l2 2h4a2 2 0 012 2v1M5 19h14a2 2 0 002-2v-5a2 2 0 00-2-2H9a2 2 0 00-2 2v5a2 2 0 01-2 2z"
-                  />
-                </svg>
-              </div>
-              <h3 className="text-xl font-semibold mb-2">No items yet</h3>
-              <p className="text-muted-foreground">
-                Start saving items to see them here
-              </p>
-            </CardContent>
-          </Card>
-        ) : filteredItems.length === 0 ? (
-          <Card className="bg-background/60 backdrop-blur-sm border-2 border-dashed">
-            <CardContent className="flex flex-col items-center justify-center py-20">
-              <div className="w-24 h-24 bg-gradient-to-br from-orange-100 to-blue-100 dark:from-orange-950 dark:to-blue-950 rounded-full flex items-center justify-center mb-6 animate-pulse">
-                <svg
-                  className="w-12 h-12 text-orange-600 dark:text-orange-400"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-                  />
-                </svg>
-              </div>
-              <h3 className="text-2xl font-bold bg-gradient-to-r from-orange-600 to-blue-600 bg-clip-text text-transparent mb-3">
-                No Results Found
-              </h3>
-              <p className="text-muted-foreground text-center max-w-md mb-4">
-                {q && status !== 'all'
-                  ? `No items match "${q}" with status "${status}"`
-                  : q
-                    ? `No items match "${q}"`
-                    : `No items with status "${status}"`}
-              </p>
-              <div className="flex gap-3 mt-2">
-                <button
-                  onClick={() => {
-                    setSearchInput('')
-                    navigate({ search: { q: '', status: 'all' } })
-                  }}
-                  className="px-4 py-2 bg-gradient-to-r from-orange-600 to-blue-600 text-white rounded-lg hover:shadow-lg hover:scale-105 transition-all duration-200 font-medium"
-                >
-                  Clear Filters
-                </button>
-              </div>
-            </CardContent>
-          </Card>
-        ) : (
-          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-            {filteredItems.map((item) => (
-              <Card
-                key={item.id}
-                className="group relative bg-background/60 backdrop-blur-sm border-2 hover:border-orange-300 dark:hover:border-orange-700 transition-all duration-300 overflow-hidden hover:shadow-2xl hover:-translate-y-1 cursor-pointer"
-                onClick={() => window.open(item.url, '_blank')}
+function ItemCount({
+  itemsPromise,
+}: {
+  itemsPromise: Promise<Awaited<ReturnType<typeof getItemsFn>>>
+}) {
+  const items = use(itemsPromise)
+  return (
+    <p className="text-muted-foreground text-lg">
+      {items.length} {items.length === 1 ? 'item' : 'items'} in your collection
+    </p>
+  )
+}
+
+function ItemsContent({
+  itemsPromise,
+  q,
+  status,
+}: {
+  itemsPromise: Promise<Awaited<ReturnType<typeof getItemsFn>>>
+  q: string
+  status: 'all' | ItemStatus
+}) {
+  const navigate = Route.useNavigate()
+  const items = use(itemsPromise)
+
+  const filteredItems = items.filter((item) => {
+    const matchesSearch =
+      item.title?.toLowerCase().includes(q.toLowerCase()) ||
+      item.tags?.some((tag) => tag.toLowerCase().includes(q.toLowerCase()))
+    const matchesStatus = status === 'all' || item.status === status
+    return matchesSearch && matchesStatus
+  })
+
+  return (
+    <>
+      {items.length === 0 ? (
+        <Card className="bg-background/60 backdrop-blur-sm border-2">
+          <CardContent className="flex flex-col items-center justify-center py-20">
+            <div className="w-24 h-24 bg-gradient-to-br from-orange-100 to-blue-100 dark:from-orange-950 dark:to-blue-950 rounded-full flex items-center justify-center mb-4">
+              <svg
+                className="w-12 h-12 text-orange-600 dark:text-orange-400"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
               >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M5 19a2 2 0 01-2-2V7a2 2 0 012-2h4l2 2h4a2 2 0 012 2v1M5 19h14a2 2 0 002-2v-5a2 2 0 00-2-2H9a2 2 0 00-2 2v5a2 2 0 01-2 2z"
+                />
+              </svg>
+            </div>
+            <h3 className="text-xl font-semibold mb-2">No items yet</h3>
+            <p className="text-muted-foreground">
+              Start saving items to see them here
+            </p>
+          </CardContent>
+        </Card>
+      ) : filteredItems.length === 0 ? (
+        <Card className="bg-background/60 backdrop-blur-sm border-2 border-dashed">
+          <CardContent className="flex flex-col items-center justify-center py-20">
+            <div className="w-24 h-24 bg-gradient-to-br from-orange-100 to-blue-100 dark:from-orange-950 dark:to-blue-950 rounded-full flex items-center justify-center mb-6 animate-pulse">
+              <svg
+                className="w-12 h-12 text-orange-600 dark:text-orange-400"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+                />
+              </svg>
+            </div>
+            <h3 className="text-2xl font-bold bg-gradient-to-r from-orange-600 to-blue-600 bg-clip-text text-transparent mb-3">
+              No Results Found
+            </h3>
+            <p className="text-muted-foreground text-center max-w-md mb-4">
+              {q && status !== 'all'
+                ? `No items match "${q}" with status "${status}"`
+                : q
+                  ? `No items match "${q}"`
+                  : `No items with status "${status}"`}
+            </p>
+            <div className="flex gap-3 mt-2">
+              <button
+                onClick={() => {
+                  navigate({
+                    search: { q: '', status: 'all' },
+                  })
+                }}
+                className="px-4 py-2 bg-gradient-to-r from-orange-600 to-blue-600 text-white rounded-lg hover:shadow-lg hover:scale-105 transition-all duration-200 font-medium"
+              >
+                Clear Filters
+              </button>
+            </div>
+          </CardContent>
+        </Card>
+      ) : (
+        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+          {filteredItems.map((item) => (
+            <Card
+              key={item.id}
+              className="group relative bg-background/60 backdrop-blur-sm border-2 hover:border-orange-300 dark:hover:border-orange-700 transition-all duration-300 overflow-hidden hover:shadow-2xl hover:-translate-y-1 cursor-pointer"
+            >
+              <Link to="/dashboard/items/$itemId" params={{ itemId: item.id }}>
                 {/* Image Section */}
                 <div className="relative h-48 bg-gradient-to-br from-orange-100 via-background to-blue-100 dark:from-orange-950/50 dark:via-background dark:to-blue-950/50 overflow-hidden">
                   {item.ogImage ? (
@@ -317,11 +368,54 @@ function RouteComponent() {
 
                 {/* Hover Gradient Overlay */}
                 <div className="absolute inset-0 bg-gradient-to-t from-orange-600/0 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" />
-              </Card>
-            ))}
-          </div>
-        )}
+              </Link>
+            </Card>
+          ))}
+        </div>
+      )}
+    </>
+  )
+}
+
+function ItemSkeleton() {
+  return (
+    <Card className="relative bg-background/60 backdrop-blur-sm border-2 overflow-hidden">
+      {/* Image Section Skeleton */}
+      <div className="relative h-48 bg-gradient-to-br from-orange-100 via-background to-blue-100 dark:from-orange-950/50 dark:via-background dark:to-blue-950/50">
+        <Skeleton className="w-full h-full" />
+        {/* Status Badge Skeleton */}
+        <div className="absolute top-3 right-3">
+          <Skeleton className="h-6 w-24 rounded-full" />
+        </div>
       </div>
-    </div>
+
+      {/* Content Section Skeleton */}
+      <CardHeader className="pb-3">
+        {/* Title Skeleton */}
+        <Skeleton className="h-6 w-3/4 mb-2" />
+        <Skeleton className="h-6 w-1/2" />
+
+        {/* URL Section Skeleton */}
+        <div className="flex justify-between items-center gap-1.5 mt-2">
+          <Skeleton className="h-4 w-32" />
+          <Skeleton className="h-8 w-8 rounded-lg" />
+        </div>
+      </CardHeader>
+
+      <CardContent className="space-y-4">
+        {/* Metadata Skeleton */}
+        <div className="flex items-center gap-4">
+          <Skeleton className="h-4 w-24" />
+          <Skeleton className="h-4 w-28" />
+        </div>
+
+        {/* Content Preview Skeleton */}
+        <div className="space-y-2">
+          <Skeleton className="h-4 w-full" />
+          <Skeleton className="h-4 w-full" />
+          <Skeleton className="h-4 w-2/3" />
+        </div>
+      </CardContent>
+    </Card>
   )
 }
