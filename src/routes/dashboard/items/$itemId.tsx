@@ -1,3 +1,4 @@
+import { MessageResponse } from '@/components/ai-elements/message'
 import { Badge } from '@/components/ui/badge'
 import { Button, buttonVariants } from '@/components/ui/button'
 import {
@@ -31,6 +32,17 @@ export const Route = createFileRoute('/dashboard/items/$itemId')({
     const item = await getItemFn({ data: { id: params.itemId } })
     return { item }
   },
+  head: ({ loaderData }) => ({
+    meta: [
+      {
+        title: loaderData?.item?.title || 'Item',
+      },
+      {
+        property: 'og:title',
+        content: loaderData?.item?.title || 'Item',
+      },
+    ],
+  }),
 })
 
 // Helper functions (reused logic for consistency)
@@ -150,7 +162,7 @@ function RouteComponent() {
                   <ScrollArea className="h-[400px] w-full rounded-md border p-6 bg-muted/30">
                     {item.content ? (
                       <div className="whitespace-pre-wrap text-muted-foreground font-light leading-relaxed">
-                        {item.content}
+                        <MessageResponse>{item.content}</MessageResponse>
                       </div>
                     ) : (
                       <div className="flex flex-col items-center justify-center h-full text-muted-foreground/50">

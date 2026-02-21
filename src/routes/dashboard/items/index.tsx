@@ -40,6 +40,17 @@ export const Route = createFileRoute('/dashboard/items/')({
     itemsPromise: getItemsFn(), //this data is unawaited
   }),
   validateSearch: zodValidator(itemsSearchParams),
+  head: () => ({
+    meta: [
+      {
+        title: 'Saved Items',
+      },
+      {
+        property: 'og:title',
+        content: 'Saved Items',
+      },
+    ],
+  }),
 })
 
 // Helper functions
