@@ -17,15 +17,23 @@ export const authFnMiddleware = createMiddleware({ type: 'function' }).server(
 export const authMiddleware = createMiddleware().server(
   async ({ next, request }) => {
     const url = new URL(request.url)
-    if (!url.pathname.includes('/dashboard')) {
+    const isDashboard = url.pathname.startsWith('/dashboard')
+    const isApi = url.pathname.startsWith('/api')
+
+    // If it's neither, just continue
+    if (!isDashboard && !isApi) {
       return next()
     }
 
     const headers = getRequestHeaders()
     const session = await auth.api.getSession({ headers })
-    if (!session) {
+
+    // Only redirect to login if we're on a dashboard page
+    if (!session && isDashboard) {
       throw redirect({ to: '/login' })
     }
+
+    // Continue with whatever session we found (or null for API)
     return next({ context: { session } })
   },
 )

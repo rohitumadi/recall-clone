@@ -14,6 +14,7 @@ import { Skeleton } from '@/components/ui/skeleton'
 import { getItemFn } from '@/data/items'
 import { handleCopyUrlFn } from '@/lib/clipboard'
 import { createFileRoute, Link } from '@tanstack/react-router'
+import { useCompletion } from '@ai-sdk/react'
 import {
   ArrowLeft,
   Calendar,
@@ -21,6 +22,7 @@ import {
   ExternalLink,
   Globe,
   ImageIcon,
+  Loader,
   User,
 } from 'lucide-react'
 import { toast } from 'sonner'
@@ -77,6 +79,27 @@ const handleCopyUrl = (url: string) => {
 
 function RouteComponent() {
   const { item } = Route.useLoaderData()
+
+  const { completion, complete, isLoading } = useCompletion({
+    api: '/api/ai/summary',
+    streamProtocol: 'text',
+    body: {
+      itemId: item.id,
+      prompt: 'Summarize this item',
+    },
+    onError: (error) => {
+      toast.error('Failed to summarize item ' + error.message)
+    },
+  })
+  function handleGenerateSummary() {
+    if (!item.content) {
+      toast.error('No content to summarize')
+      return
+    }
+    // Don't pass content as the prompt arg — the API fetches it from DB via itemId.
+    // Passing it would override the `prompt` field in the request body.
+    complete('Summarize this item')
+  }
 
   return (
     <div className="relative w-full min-h-screen">
@@ -152,6 +175,46 @@ function RouteComponent() {
                   </span>
                 </CardDescription>
               </CardHeader>
+              <CardContent className="pt-6 ">
+                <div className="prose dark:prose-invert max-w-none">
+                  <h3 className="text-lg font-semibold mb-3 flex items-center gap-2">
+                    <span className="w-1 h-6 bg-orange-500 rounded-full" />
+                    Content Summary
+                  </h3>
+                  <ScrollArea className="h-fit bg-primary/5 w-full rounded-md border p-6 ">
+                    {isLoading && !completion ? (
+                      // Streaming started but no tokens yet
+                      <div className="flex flex-col gap-4 items-center justify-center h-full text-muted-foreground/50">
+                        <Button disabled>
+                          <Loader className="w-4 h-4 mr-2 animate-spin" />
+                          Generating...
+                        </Button>
+                      </div>
+                    ) : completion || item.summary ? (
+                      <div className="whitespace-pre-wrap text-muted-foreground font-light leading-relaxed">
+                        <MessageResponse>
+                          {(completion || item.summary) ?? undefined}
+                        </MessageResponse>
+                      </div>
+                    ) : (
+                      <div className="flex flex-col gap-4 items-center justify-center h-full text-muted-foreground/50">
+                        {item.content ? (
+                          <>
+                            <p>
+                              No Summary available, Generate one to continue
+                            </p>
+                            <Button onClick={handleGenerateSummary}>
+                              Generate Summary
+                            </Button>
+                          </>
+                        ) : (
+                          <p>No Content available</p>
+                        )}
+                      </div>
+                    )}
+                  </ScrollArea>
+                </div>
+              </CardContent>
 
               <CardContent className="pt-6">
                 <div className="prose dark:prose-invert max-w-none">

@@ -4,7 +4,7 @@ import { Button, buttonVariants } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 import { MobileNav } from '@/components/mobile-nav'
 import { ModeToggle } from './ui/mode-toggle'
-import { Link } from '@tanstack/react-router'
+import { Link, useRouter } from '@tanstack/react-router'
 import { useTheme } from '../lib/theme-provider'
 import { authClient } from '@/lib/auth-client'
 import { toast } from 'sonner'
@@ -27,6 +27,7 @@ export const navLinks = [
 export function Header() {
   const scrolled = useScroll(10)
   const { theme } = useTheme()
+  const router = useRouter()
   const { data: session, isPending } = authClient.useSession()
 
   return (
@@ -87,8 +88,9 @@ export function Header() {
                     fetchOptions: {
                       onSuccess: () => {
                         toast.success('Logged out successfully')
+                        router.invalidate()
                       },
-                      onError: ({ error }) => {
+                      onError: ({ error }: { error: Error }) => {
                         toast.error(error.message)
                       },
                     },
