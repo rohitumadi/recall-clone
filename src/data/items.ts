@@ -5,6 +5,9 @@ import { authFnMiddleware } from '@/middlewares/auth'
 import { createServerFn } from '@tanstack/react-start'
 import z from 'zod'
 import { notFound } from '@tanstack/react-router'
+import { generateText, streamText } from 'ai'
+import { openrouter } from '@/lib/openRouter'
+import { Item } from 'node_modules/@base-ui/react/esm/autocomplete/index.parts'
 
 export const scrapeUrlFn = createServerFn({ method: 'POST' })
   .middleware([authFnMiddleware])
@@ -231,4 +234,50 @@ export const getItemFn = createServerFn({ method: 'GET' })
       throw notFound()
     }
     return item
+  })
+
+export const saveSummaryAndGenerateTagFn = createServerFn({ method: 'POST' })
+  .middleware([authFnMiddleware])
+  .inputValidator(
+    z.object({
+      itemId: z.string(),
+      summary: z.string(),
+    }),
+  )
+  .handler(async ({ context, data }) => {
+    const session = context.session
+    const { itemId, summary } = data
+    const item = await prisma.savedItem.findUnique({
+      where: {
+        id: itemId,
+        userId: session.user.id,
+      },
+    })
+    if (!item) {
+      throw notFound()
+    }
+    const { text } = await generateText({
+      model: openrouter('arcee-ai/trinity-large-preview:free'),
+      system:
+        'You are a helpful assistant that extracts relevant tags from content summary. Return only 5 tags.Return only a comma-separated list of tags,nothing else.Example technology,web development,programming,javascript,typescript',
+      prompt: `Please extract relevant tags from the following content summary:
+        
+        Content summary:
+        ${summary}`,
+    })
+    const tags = text
+      .split(',')
+      .map((tag) => tag.trim().toLowerCase())
+      .filter((tag) => tag.length > 0)
+      .slice(0, 5)
+    const updatedItem = await prisma.savedItem.update({
+      where: {
+        id: itemId,
+      },
+      data: {
+        summary: summary,
+        tags: tags,
+      },
+    })
+    return updatedItem
   })

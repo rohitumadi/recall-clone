@@ -11,9 +11,9 @@ import {
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { Separator } from '@/components/ui/separator'
 import { Skeleton } from '@/components/ui/skeleton'
-import { getItemFn } from '@/data/items'
+import { getItemFn, saveSummaryAndGenerateTagFn } from '@/data/items'
 import { handleCopyUrlFn } from '@/lib/clipboard'
-import { createFileRoute, Link } from '@tanstack/react-router'
+import { createFileRoute, Link, useRouter } from '@tanstack/react-router'
 import { useCompletion } from '@ai-sdk/react'
 import {
   ArrowLeft,
@@ -79,6 +79,7 @@ const handleCopyUrl = (url: string) => {
 
 function RouteComponent() {
   const { item } = Route.useLoaderData()
+  const router = useRouter()
 
   const { completion, complete, isLoading } = useCompletion({
     api: '/api/ai/summary',
@@ -89,6 +90,13 @@ function RouteComponent() {
     },
     onError: (error) => {
       toast.error('Failed to summarize item ' + error.message)
+    },
+    onFinish: async (_prompt, completion) => {
+      await saveSummaryAndGenerateTagFn({
+        data: { itemId: item.id, summary: completion },
+      })
+      toast.success('Summary generated successfully!')
+      router.invalidate()
     },
   })
   function handleGenerateSummary() {
@@ -181,6 +189,13 @@ function RouteComponent() {
                     <span className="w-1 h-6 bg-orange-500 rounded-full" />
                     Content Summary
                   </h3>
+                  <div className="flex flex-wrap gap-2 m-2">
+                    {item.tags?.map((tag) => (
+                      <Badge key={tag} variant="default">
+                        {tag}
+                      </Badge>
+                    ))}
+                  </div>
                   <ScrollArea className="h-fit bg-primary/5 w-full rounded-md border p-6 ">
                     {isLoading && !completion ? (
                       // Streaming started but no tokens yet
